@@ -1,64 +1,233 @@
-import moduleData from '../mockData/modules.json';
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-let modules = [...moduleData];
+import { toast } from 'react-toastify';
 
 const moduleService = {
   async getAll() {
-    await delay(300);
-    return [...modules];
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: ["Name", "Tags", "Owner", "CreatedOn", "CreatedBy", "ModifiedOn", "ModifiedBy", "title", "description", "order", "course_id"],
+        orderBy: [{ fieldName: "order", SortType: "ASC" }]
+      };
+
+      const response = await apperClient.fetchRecords("module", params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching modules:", error);
+      throw error;
+    }
   },
 
   async getById(id) {
-    await delay(250);
-    const module = modules.find(m => m.id === id);
-    if (!module) {
-      throw new Error('Module not found');
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: ["Name", "Tags", "Owner", "CreatedOn", "CreatedBy", "ModifiedOn", "ModifiedBy", "title", "description", "order", "course_id"]
+      };
+
+      const response = await apperClient.getRecordById("module", id, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching module with ID ${id}:`, error);
+      throw error;
     }
-    return { ...module };
   },
 
   async getByCourseId(courseId) {
-    await delay(300);
-    return modules
-      .filter(m => m.courseId === courseId)
-      .sort((a, b) => a.order - b.order)
-      .map(m => ({ ...m }));
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: ["Name", "Tags", "Owner", "CreatedOn", "CreatedBy", "ModifiedOn", "ModifiedBy", "title", "description", "order", "course_id"],
+        where: [
+          {
+            fieldName: "course_id",
+            operator: "ExactMatch",
+            values: [courseId]
+          }
+        ],
+        orderBy: [{ fieldName: "order", SortType: "ASC" }]
+      };
+
+      const response = await apperClient.fetchRecords("module", params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching modules by course:", error);
+      throw error;
+    }
   },
 
   async create(moduleData) {
-    await delay(400);
-    const newModule = {
-      id: Date.now().toString(),
-      ...moduleData,
-      lessons: []
-    };
-    modules.push(newModule);
-    return { ...newModule };
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Only include Updateable fields
+      const params = {
+        records: [{
+          Name: moduleData.title,
+          Tags: moduleData.tags?.join(',') || '',
+          title: moduleData.title,
+          description: moduleData.description,
+          order: parseInt(moduleData.order) || 1,
+          course_id: parseInt(moduleData.courseId)
+        }]
+      };
+
+      const response = await apperClient.createRecord("module", params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const successfulRecords = response.results.filter(result => result.success);
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create ${failedRecords.length} records:${failedRecords}`);
+          failedRecords.forEach(record => {
+            record.errors?.forEach(error => {
+              toast.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulRecords.length > 0 ? successfulRecords[0].data : null;
+      }
+    } catch (error) {
+      console.error("Error creating module:", error);
+      throw error;
+    }
   },
 
   async update(id, updates) {
-    await delay(350);
-    const index = modules.findIndex(m => m.id === id);
-    if (index === -1) {
-      throw new Error('Module not found');
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Only include Updateable fields
+      const params = {
+        records: [{
+          Id: parseInt(id),
+          ...(updates.title && { Name: updates.title, title: updates.title }),
+          ...(updates.tags && { Tags: updates.tags.join(',') }),
+          ...(updates.description && { description: updates.description }),
+          ...(updates.order && { order: parseInt(updates.order) }),
+          ...(updates.courseId && { course_id: parseInt(updates.courseId) })
+        }]
+      };
+
+      const response = await apperClient.updateRecord("module", params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const successfulUpdates = response.results.filter(result => result.success);
+        const failedUpdates = response.results.filter(result => !result.success);
+        
+        if (failedUpdates.length > 0) {
+          console.error(`Failed to update ${failedUpdates.length} records:${failedUpdates}`);
+          failedUpdates.forEach(record => {
+            record.errors?.forEach(error => {
+              toast.error(`${error.fieldLabel}: ${error.message}`);
+            });
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulUpdates.length > 0 ? successfulUpdates[0].data : null;
+      }
+    } catch (error) {
+      console.error("Error updating module:", error);
+      throw error;
     }
-    modules[index] = {
-      ...modules[index],
-      ...updates
-    };
-    return { ...modules[index] };
   },
 
   async delete(id) {
-    await delay(300);
-    const index = modules.findIndex(m => m.id === id);
-    if (index === -1) {
-      throw new Error('Module not found');
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        RecordIds: [parseInt(id)]
+      };
+
+      const response = await apperClient.deleteRecord("module", params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return false;
+      }
+
+      if (response.results) {
+        const successfulDeletions = response.results.filter(result => result.success);
+        const failedDeletions = response.results.filter(result => !result.success);
+        
+        if (failedDeletions.length > 0) {
+          console.error(`Failed to delete ${failedDeletions.length} records:${failedDeletions}`);
+          failedDeletions.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+        }
+        
+        return successfulDeletions.length > 0;
+      }
+    } catch (error) {
+      console.error("Error deleting module:", error);
+      throw error;
     }
-    modules.splice(index, 1);
-    return true;
   }
 };
 

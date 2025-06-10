@@ -57,7 +57,7 @@ const UserTableRow = ({ user, courses, onUpdateRole, onDelete, onManageEnrollmen
                     <option value="admin">Admin</option>
                 </Select>
             </td>
-            <td className="p-4">
+<td className="p-4">
                 <div className="flex items-center space-x-2">
                     <Paragraph className="text-sm text-surface-900">
                         {user.enrolledCourses?.length || 0} courses
