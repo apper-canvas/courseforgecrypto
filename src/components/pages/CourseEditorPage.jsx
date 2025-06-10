@@ -1,229 +1,274 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ApperIcon from '@/components/ApperIcon';
-import courseService from '@/services/api/courseService';
-import moduleService from '@/services/api/moduleService';
 import PageHeader from '@/components/organisms/PageHeader';
-import Button from '@/components/atoms/Button';
-import Spinner from '@/components/atoms/Spinner';
-import TabButton from '@/components/molecules/TabButton';
 import CourseDetailsForm from '@/components/organisms/CourseDetailsForm';
-import ModulesManagement from '@/components/organisms/ModulesManagement';
 import CourseSettingsForm from '@/components/organisms/CourseSettingsForm';
+import ModulesManagement from '@/components/organisms/ModulesManagement';
+import CreateModuleModal from '@/components/organisms/CreateModuleModal';
 import LoadingState from '@/components/organisms/LoadingState';
 import ErrorState from '@/components/organisms/ErrorState';
-import EmptyState from '@/components/organisms/EmptyState';
+import TabButton from '@/components/molecules/TabButton';
+import Button from '@/components/atoms/Button';
+import courseService from '@/services/api/courseService';
+import moduleService from '@/services/api/moduleService';
 
 const CourseEditorPage = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('details');
-    const [course, setCourse] = useState(null);
-    const [modules, setModules] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(null);
+  const { id } = useParams();
+const navigate = useNavigate();
+  const isEditMode = Boolean(id);
+  const [activeTab, setActiveTab] = useState('details');
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(isEditMode);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-    const tabs = [
-        { id: 'details', label: 'Course Details', icon: 'FileText' },
-        { id: 'modules', label: 'Modules & Lessons', icon: 'Layers' },
-        { id: 'settings', label: 'Settings', icon: 'Settings' }
-    ];
+  // Module management state
+  const [modules, setModules] = useState([]);
+  const [modulesLoading, setModulesLoading] = useState(false);
+  const [modulesError, setModulesError] = useState(null);
+  const [isCreateModuleModalOpen, setIsCreateModuleModalOpen] = useState(false);
+const tabs = [
+    { id: 'details', label: 'Course Details', icon: 'BookOpen' },
+    { id: 'modules', label: 'Modules & Lessons', icon: 'Layers' },
+    { id: 'settings', label: 'Settings', icon: 'Settings' }
+  ];
+  useEffect(() => {
+    if (isEditMode) {
+      loadCourse();
+      loadModules();
+    } else {
+      // Initialize new course with default values
+      setCourse({
+        title: '',
+        description: '',
+        category: '',
+        tags: [],
+        thumbnail: '',
+        published: false
+      });
+    }
+  }, [id]);
 
-    useEffect(() => {
-        loadCourseData();
-    }, [id]);
+  const loadModules = async () => {
+    if (!id) return;
+    
+    setModulesLoading(true);
+    setModulesError(null);
+    try {
+      const courseModules = await moduleService.getByCourseId(id);
+      setModules(courseModules);
+    } catch (err) {
+      setModulesError(err.message);
+      toast.error('Failed to load modules');
+    } finally {
+      setModulesLoading(false);
+}
+  };
+  
+  const loadCourse = async () => {
+    try {
+      setLoading(true);
+      const courseData = await courseService.getById(id);
+      setCourse(courseData);
+    } catch (err) {
+      setError(err.message);
+      toast.error('Failed to load course');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const loadCourseData = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const [courseData, moduleData] = await Promise.all([
-                courseService.getById(id),
-                moduleService.getByCourseId(id)
-            ]);
-            setCourse(courseData);
-            setModules(moduleData);
-        } catch (err) {
-            setError(err.message || 'Failed to load course data');
-            toast.error('Failed to load course data');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSave = async (formData) => {
+    try {
+      setSaving(true);
+      let result;
+if (isEditMode) {
+        result = await courseService.update(id, formData);
+      } else {
+        result = await courseService.create(formData);
+        navigate(`/courses/edit/${result.id}`);
+      }
+      setCourse(result);
+      toast.success(isEditMode ? 'Course updated successfully' : 'Course created successfully');
+    } catch (err) {
+      toast.error('Failed to save course');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    const handleSaveCourse = async () => {
-        if (!course.title.trim()) {
-            toast.error('Course title is required');
-            return;
-        }
+  // Module management functions
+  const handleAddModule = () => {
+    if (!course?.id) {
+      toast.error('Please save the course first before adding modules');
+      return;
+    }
+    setIsCreateModuleModalOpen(true);
+  };
 
-        setSaving(true);
-        try {
-            const updated = await courseService.update(id, course);
-            setCourse(updated);
-            toast.success('Course updated successfully');
-        } catch (err) {
-            toast.error('Failed to update course');
-        } finally {
-            setSaving(false);
-        }
-    };
+  const handleCreateModule = async (moduleData) => {
+    try {
+      const newModule = await moduleService.create({
+        ...moduleData,
+        courseId: course.id
+      });
+      setModules(prev => [...prev, newModule]);
+      toast.success('Module created successfully');
+    } catch (err) {
+      toast.error('Failed to create module');
+      throw err;
+    }
+  };
 
-    const handleAddModule = async () => {
-        const newModule = {
-            courseId: id,
-            title: 'New Module',
-            description: '',
-            order: modules.length + 1,
-            lessons: []
-        };
-
-        try {
-            const created = await moduleService.create(newModule);
-            setModules(prev => [...prev, created]);
-            toast.success('Module added successfully');
-        } catch (err) {
-            toast.error('Failed to add module');
-        }
-    };
-
-    const handleDeleteModule = async (moduleId) => {
-        if (!window.confirm('Are you sure you want to delete this module?')) return;
-
-        try {
-            await moduleService.delete(moduleId);
-            setModules(prev => prev.filter(m => m.id !== moduleId));
-            toast.success('Module deleted successfully');
-        } catch (err) {
-            toast.error('Failed to delete module');
-        }
-    };
-
-    const handleUpdateModule = async (moduleId, updates) => {
-        try {
-            const updated = await moduleService.update(moduleId, updates);
-            setModules(prev => prev.map(m => m.id === moduleId ? updated : m));
-        } catch (err) {
-            toast.error('Failed to update module');
-        }
-    };
-
-    if (loading) {
-        return <LoadingState message="Loading course editor..." />;
+  const handleDeleteModule = async (moduleId) => {
+    if (!window.confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
+      return;
     }
 
-    if (error) {
-        return (
-            <ErrorState message={error} onRetry={loadCourseData}>
-                <Button
-                    onClick={() => navigate('/courses')}
-                    className="bg-surface-100 text-surface-700 px-4 py-2 rounded-lg hover:bg-surface-200 ml-3"
-                >
-                    Back to Courses
-                </Button>
-            </ErrorState>
-        );
+    try {
+      await moduleService.delete(moduleId);
+      setModules(prev => prev.filter(m => m.id !== moduleId));
+      toast.success('Module deleted successfully');
+    } catch (err) {
+toast.error('Failed to delete module');
     }
+  };
 
-    if (!course) {
-        return (
-            <div className="p-6 lg:p-8">
-                <div className="max-w-5xl mx-auto">
-                    <EmptyState
-                        icon="BookOpen"
-                        title="Course not found"
-                        description="The course you're looking for doesn't exist."
-                        animatedIcon={false}
-                        actionButton={
-                            <Button
-                                onClick={() => navigate('/courses')}
-                                className="bg-primary text-white px-4 py-2 rounded-lg hover:shadow-lg"
-                            >
-                                Back to Courses
-                            </Button>
-                        }
-                    />
-                </div>
-            </div>
-        );
+  const handleUpdateModule = async (moduleId, updates) => {
+    try {
+      const updatedModule = await moduleService.update(moduleId, updates);
+      setModules(prev => prev.map(m => m.id === moduleId ? updatedModule : m));
+      // Don't show toast for every keystroke - only for significant updates
+      if (updates.title || updates.description) {
+        toast.success('Module updated');
+      }
+    } catch (err) {
+      toast.error('Failed to update module');
     }
+  };
 
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'details':
-                return <CourseDetailsForm course={course} setCourse={setCourse} />;
-            case 'modules':
-                return (
-                    <ModulesManagement
-                        modules={modules}
-                        onAddModule={handleAddModule}
-                        onDeleteModule={handleDeleteModule}
-                        onUpdateModule={handleUpdateModule}
-                    />
-                );
-            case 'settings':
-                return <CourseSettingsForm course={course} />;
-            default:
-                return null;
-        }
-    };
+  if (loading) {
+    return <LoadingState message="Loading course..." />;
+  }
 
+  if (error) {
     return (
-        <div className="p-6 lg:p-8">
-            <div className="max-w-5xl mx-auto">
-                <PageHeader
-                    title={course.title}
-                    description="Edit course content and settings"
-                    onBack={() => navigate('/courses')}
-                    actionButton={
-                        <Button
-                            onClick={handleSaveCourse}
-                            disabled={saving}
-                            className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg inline-flex items-center space-x-2"
-                        >
-                            {saving ? (
-                                <>
-                                    <Spinner size={4} />
-                                    <span>Saving...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <ApperIcon name="Save" size={18} />
-                                    <span>Save Changes</span>
-                                </>
-                            )}
-                        </Button>
-                    }
-                />
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="border-b border-surface-200 mb-8"
-                >
-                    <nav className="flex space-x-8">
-                        {tabs.map(tab => (
-                            <TabButton
-                                key={tab.id}
-                                label={tab.label}
-                                icon={tab.icon}
-                                isActive={activeTab === tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                            />
-                        ))}
-                    </nav>
-                </motion.div>
-
-                <div className="bg-white rounded-xl p-8 shadow-sm border border-surface-200">
-                    {renderTabContent()}
-                </div>
-            </div>
-        </div>
+      <ErrorState 
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
     );
+  }
+return (
+    <div className="min-h-screen bg-surface-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <PageHeader
+          title={isEditMode ? 'Edit Course' : 'Create New Course'}
+          subtitle={course?.title || 'Build an engaging learning experience'}
+          breadcrumbs={[
+            { label: 'Courses', href: '/courses' },
+            { label: isEditMode ? 'Edit' : 'Create' }
+          ]}
+          actions={
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => navigate('/courses')}
+                className="text-surface-600 hover:bg-surface-100 px-4 py-2 rounded-lg transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleSave(course)}
+                disabled={saving}
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:shadow-lg inline-flex items-center space-x-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <ApperIcon name="Save" size={16} />
+                    <span>Save Course</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          }
+        />
+
+<div className="mt-8">
+          {/* Tabs */}
+          <div className="flex space-x-1 bg-surface-100 p-1 rounded-lg mb-8">
+            {tabs.map(tab => (
+              <TabButton
+                key={tab.id}
+                id={tab.id}
+                label={tab.label}
+                icon={tab.icon}
+                isActive={activeTab === tab.id}
+                onClick={setActiveTab}
+              />
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-white rounded-lg shadow-sm border border-surface-200">
+            {activeTab === 'details' && (
+              <CourseDetailsForm
+                course={course}
+                onChange={setCourse}
+                onSave={handleSave}
+                saving={saving}
+              />
+            )}
+
+            {activeTab === 'modules' && (
+              <div className="p-6">
+                {modulesLoading ? (
+                  <LoadingState message="Loading modules..." />
+                ) : modulesError ? (
+                  <ErrorState 
+                    message={modulesError}
+                    onRetry={loadModules}
+                  />
+                ) : (
+                  <ModulesManagement
+                    modules={modules}
+                    onAddModule={handleAddModule}
+                    onDeleteModule={handleDeleteModule}
+                    onUpdateModule={handleUpdateModule}
+                  />
+                )}
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <CourseSettingsForm
+                course={course}
+onChange={setCourse}
+                onSave={handleSave}
+                saving={saving}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Create Module Modal */}
+      <CreateModuleModal
+        isOpen={isCreateModuleModalOpen}
+        onClose={() => setIsCreateModuleModalOpen(false)}
+        onSubmit={handleCreateModule}
+        courseId={course?.id}
+        existingModules={modules}
+      />
+</div>
+  );
 };
 
 export default CourseEditorPage;
