@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "userId": "1",
+    "lessonId": "1",
+    "content": "This lesson was really helpful! The explanation of HTML document structure is clear and easy to follow. I especially appreciated the examples showing proper semantic markup.",
+    "status": "pending",
+    "createdAt": "2024-01-26T10:30:00Z"
+  },
+  {
+    "id": "2",
+    "userId": "3",
+    "lessonId": "1",
+    "content": "Could you provide more examples of when to use different semantic elements? I'm still confused about the difference between article and section tags.",
+    "status": "pending",
+    "createdAt": "2024-01-26T09:15:00Z"
+  },
+  {
+    "id": "3",
+    "userId": "5",
+    "lessonId": "3",
+    "content": "The CSS selector examples were fantastic. The visual demonstrations really helped me understand specificity and cascade rules.",
+    "status": "approved",
+    "createdAt": "2024-01-25T16:45:00Z"
+  },
+  {
+    "id": "4",
+    "userId": "7",
+    "lessonId": "2",
+    "content": "Great lesson on HTML elements! The interactive examples made it easy to practice. Looking forward to the next module on CSS.",
+    "status": "approved",
+    "createdAt": "2024-01-25T14:20:00Z"
+  },
+  {
+    "id": "5",
+    "userId": "1",
+    "lessonId": "4",
+    "content": "The Python introduction is well-structured. I like how you connect the concepts to data science applications right from the beginning.",
+    "status": "pending",
+    "createdAt": "2024-01-26T11:55:00Z"
+  },
+  {
+    "id": "6",
+    "userId": "3",
+    "lessonId": "5",
+    "content": "This lesson on user research techniques is eye-opening. I never realized how important empathy mapping is in the design process.",
+    "status": "pending",
+    "createdAt": "2024-01-26T08:30:00Z"
+  },
+  {
+    "id": "7",
+    "userId": "5",
+    "lessonId": "3",
+    "content": "The video quality could be improved. Sometimes it's hard to see the code examples clearly, especially on mobile devices.",
+    "status": "rejected",
+    "createdAt": "2024-01-24T13:10:00Z"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "courseId": "1",
+    "title": "Introduction to HTML",
+    "description": "Learn the fundamentals of HTML structure, semantic elements, and document organization",
+    "order": 1,
+    "lessons": []
+  },
+  {
+    "id": "2",
+    "courseId": "1",
+    "title": "CSS Styling and Layout",
+    "description": "Master CSS selectors, properties, flexbox, and grid for responsive layouts",
+    "order": 2,
+    "lessons": []
+  },
+  {
+    "id": "3",
+    "courseId": "1",
+    "title": "JavaScript Fundamentals",
+    "description": "Understand variables, functions, events, and DOM manipulation with JavaScript",
+    "order": 3,
+    "lessons": []
+  },
+  {
+    "id": "4",
+    "courseId": "2",
+    "title": "Python Basics for Data Science",
+    "description": "Essential Python programming concepts and data structures for data analysis",
+    "order": 1,
+    "lessons": []
+  },
+  {
+    "id": "5",
+    "courseId": "2",
+    "title": "Data Analysis with Pandas",
+    "description": "Learn to manipulate and analyze datasets using the pandas library",
+    "order": 2,
+    "lessons": []
+  },
+  {
+    "id": "6",
+    "courseId": "3",
+    "title": "Design Thinking Process",
+    "description": "Understanding user needs through empathy, ideation, and prototyping",
+    "order": 1,
+    "lessons": []
+  },
+  {
+    "id": "7",
+    "courseId": "3",
+    "title": "UI Design Fundamentals",
+    "description": "Typography, color theory, spacing, and visual hierarchy in interface design",
+    "order": 2,
+    "lessons": []
+  }
+]

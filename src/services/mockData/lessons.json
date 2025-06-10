@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "moduleId": "1",
+    "title": "HTML Document Structure",
+    "content": "Learn how to create the basic structure of an HTML document including doctype, html, head, and body elements. Understanding semantic HTML and proper document organization is crucial for web development.",
+    "videoUrl": "https://example.com/video1",
+    "resources": [
+      {"type": "pdf", "title": "HTML Quick Reference", "url": "https://example.com/html-ref.pdf"},
+      {"type": "link", "title": "MDN HTML Documentation", "url": "https://developer.mozilla.org/en-US/docs/Web/HTML"}
+    ],
+    "order": 1
+  },
+  {
+    "id": "2",
+    "moduleId": "1",
+    "title": "HTML Elements and Attributes",
+    "content": "Explore common HTML elements like headings, paragraphs, links, images, and lists. Learn about element attributes and how they modify element behavior and appearance.",
+    "videoUrl": "https://example.com/video2",
+    "resources": [
+      {"type": "exercise", "title": "HTML Elements Practice", "url": "https://example.com/exercise1"}
+    ],
+    "order": 2
+  },
+  {
+    "id": "3",
+    "moduleId": "2",
+    "title": "CSS Selectors and Properties",
+    "content": "Master different types of CSS selectors including element, class, ID, and advanced selectors. Learn essential CSS properties for styling text, colors, and spacing.",
+    "videoUrl": "https://example.com/video3",
+    "resources": [
+      {"type": "codepen", "title": "CSS Selector Examples", "url": "https://codepen.io/example"}
+    ],
+    "order": 1
+  },
+  {
+    "id": "4",
+    "moduleId": "4",
+    "title": "Python Variables and Data Types",
+    "content": "Introduction to Python programming fundamentals including variables, strings, numbers, lists, and dictionaries. Essential concepts for data science applications.",
+    "videoUrl": "https://example.com/video4",
+    "resources": [
+      {"type": "notebook", "title": "Python Basics Jupyter Notebook", "url": "https://example.com/notebook1"}
+    ],
+    "order": 1
+  },
+  {
+    "id": "5",
+    "moduleId": "6",
+    "title": "Understanding User Needs",
+    "content": "Learn techniques for conducting user research, creating personas, and understanding user pain points through empathy mapping and user interviews.",
+    "videoUrl": "https://example.com/video5",
+    "resources": [
+      {"type": "template", "title": "User Persona Template", "url": "https://example.com/template1"}
+    ],
+    "order": 1
+  }
+]
