@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import FormField from '@/components/molecules/FormField';
 
-const CourseDetailsForm = ({ course, setCourse, ...props }) => {
+const CourseDetailsForm = ({ course, setCourse, onSave, onCancel, ...domProps }) => {
     const statusOptions = [
         { value: 'draft', label: 'Draft' },
         { value: 'published', label: 'Published' },
@@ -15,7 +15,7 @@ const CourseDetailsForm = ({ course, setCourse, ...props }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
-            {...props}
+            {...domProps}
         >
             <FormField
                 label="Course Title *"
